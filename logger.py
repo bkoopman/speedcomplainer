@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 class Logger(object):
 	def __init__(self, type, config):
