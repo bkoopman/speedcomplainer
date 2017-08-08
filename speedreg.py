@@ -5,6 +5,7 @@ import sys
 import time
 from datetime import datetime
 import daemon
+from daemon import pidfile
 import signal
 import threading
 import json 
@@ -18,12 +19,12 @@ def main(filename, argv):
 	print "======================================"
 	print " Starting Speed Registration          "
 	print "======================================"
-
+	
 	global shutdownFlag
 	signal.signal(signal.SIGINT, shutdownHandler)
-
+	
 	monitor = Monitor()
-
+	
 	while not shutdownFlag:
 		try:
 			monitor.run()
@@ -36,13 +37,31 @@ def main(filename, argv):
 		except Exception as e:
 			print "Error: %s" % e
 			sys.exit(1)
-
+	
 	sys.exit()
 
 def shutdownHandler(signo, stack_frame):
 	global shutdownFlag
 	print "Got shutdown signal (%s: %s)." % (signo, stack_frame)
 	shutdownFlag = True
+
+def start_daemon(workingDirectory, fileNameWithExt, scriptName, args):
+	fileName, fileExt = os.path.splitext(fileNameWithExt)
+	pidFilePath = os.path.join(workingDirectory, fileName + ".pid")
+	
+	# launch the daemon in its context
+	context = daemon.DaemonContext(
+		working_directory = workingDirectory,
+		umask = 0o002,
+		pidfile = pidfile.TimeoutPIDLockFile(pidFilePath),
+		signal_map = { signal.SIGTERM: "terminate", signal.SIGHUP: "terminate" },
+		stdin = "/dev/null",
+		stdout = "/dev/null",
+		stderr = "/dev/null",
+		)
+	
+	with context:
+		main(scriptName, args)
 
 class Monitor():
 	def __init__(self):
@@ -92,28 +111,6 @@ class SpeedTest(threading.Thread):
 	def logSpeedTestResults(self, speedTestResults):
 		self.logger.log([ speedTestResults["date"].strftime("%Y-%m-%d %H:%M:%S"), str(speedTestResults["uploadResult"]), str(speedTestResults["downloadResult"]), str(speedTestResults["ping"]) ])
 
-class DaemonApp():
-	def __init__(self, pidFilePath, stdout_path="/dev/null", stderr_path="/dev/null"):
-		self.stdin_path = "/dev/null"
-		self.stdout_path = stdout_path
-		self.stderr_path = stderr_path
-		self.pidfile_path = pidFilePath
-		self.pidfile_timeout = 1
-
-	def run(self):
-		main(__file__, sys.argv[1:])
-
 if __name__ == "__main__":
-	main(__file__, sys.argv[1:])
-
-	workingDirectory = os.path.basename(os.path.realpath(__file__))
-	stdout_path = "/dev/null"
-	stderr_path = "/dev/null"
-	fileName, fileExt = os.path.split(os.path.realpath(__file__))
-	pidFilePath = os.path.join(workingDirectory, os.path.basename(fileName) + ".pid")
-	from daemon import runner
-	dRunner = runner.DaemonRunner(DaemonApp(pidFilePath, stdout_path, stderr_path))
-	dRunner.daemon_context.working_directory = workingDirectory
-	dRunner.daemon_context.umask = 0o002
-	dRunner.daemon_context.signal_map = { signal.SIGTERM: "terminate", signal.SIGUP: "terminate" }
-	dRunner.do_action()
+	workingDirectory, fileNameWithExt = os.path.split(os.path.realpath(__file__))
+	start_daemon(workingDirectory, fileNameWithExt, __file__, sys.argv[1:])
