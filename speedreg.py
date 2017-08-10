@@ -1,67 +1,35 @@
 #!/usr/bin/env python
 
-import os
 import sys
 import time
-from datetime import datetime
-import daemon
-from daemon import pidfile
-import signal
-import threading
 import json 
 import random
+import threading
+from daemon import Daemon
+from datetime import datetime
 from logger import Logger
 
 shutdownFlag = False
 configFile = "./conf.json"
 
-def main(filename, argv):
-	print "======================================"
-	print " Starting Speed Registration          "
-	print "======================================"
-	
-	global shutdownFlag
-	signal.signal(signal.SIGINT, shutdownHandler)
-	
-	monitor = Monitor()
-	
-	while not shutdownFlag:
-		try:
-			monitor.run()
+class SpeedRegDaemon(Daemon):
+	def run(self):
+		global shutdownFlag
+		signal.signal(signal.SIGINT, shutdownHandler)
+		
+		monitor = Monitor()
+		while not shutdownFlag:
+			try:
+				monitor.run()
 
-			for i in range(0, 5):
-				if shutdownFlag:
-					break
-				time.sleep(1)
+				for i in range(0, 5):
+					if shutdownFlag:
+						break
+					time.sleep(1)
 
-		except Exception as e:
-			print "Error: %s" % e
-			sys.exit(1)
-	
-	sys.exit()
-
-def shutdownHandler(signo, stack_frame):
-	global shutdownFlag
-	print "Got shutdown signal (%s: %s)." % (signo, stack_frame)
-	shutdownFlag = True
-
-def start_daemon(workingDirectory, fileNameWithExt, scriptName, args):
-	fileName, fileExt = os.path.splitext(fileNameWithExt)
-	pidFilePath = os.path.join(workingDirectory, fileName + ".pid")
-	
-	# launch the daemon in its context
-	context = daemon.DaemonContext(
-		working_directory = workingDirectory,
-		umask = 0o002,
-		pidfile = pidfile.TimeoutPIDLockFile(pidFilePath),
-		signal_map = { signal.SIGTERM: "terminate", signal.SIGHUP: "terminate" },
-		stdin = "/dev/null",
-		stdout = "/dev/null",
-		stderr = "/dev/null",
-		)
-	
-	with context:
-		main(scriptName, args)
+			except Exception as e:
+				print "Error: %s" % e
+				sys.exit(1)
 
 class Monitor():
 	def __init__(self):
@@ -112,5 +80,18 @@ class SpeedTest(threading.Thread):
 		self.logger.log([ speedTestResults["date"].strftime("%Y-%m-%d %H:%M:%S"), str(speedTestResults["uploadResult"]), str(speedTestResults["downloadResult"]), str(speedTestResults["ping"]) ])
 
 if __name__ == "__main__":
-	workingDirectory, fileNameWithExt = os.path.split(os.path.realpath(__file__))
-	start_daemon(workingDirectory, fileNameWithExt, __file__, sys.argv[1:])
+	daemon = SpeedRegDaemon("/var/run/speedreg.pid")
+	if len(sys.argv) == 2:
+		if "start" == sys.argv[1]:
+			daemon.start()
+		elif "stop" == sys.argv[1]:
+			daemon.stop()
+		elif "restart" == sys.argv[1]:
+			daemon.restart()
+		else:
+			print "Unknown command"
+			sys.exit(2)
+			sys.exit(0)
+	else:
+		print "usage: %s start|stop|restart" % sys.argv[0]
+		sys.exit(2)
