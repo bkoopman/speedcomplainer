@@ -7,15 +7,21 @@ import logging
 from simpledaemon import SimpleDaemon
 from datetime import datetime
 
-logFile = "speedresults.csv"
+csvFile = "speedresults.csv"
+jsFile = "values.js"
 
 class SpeedRegDaemon(SimpleDaemon):
 	def run(self):
-		logging.basicConfig(filename=logFile, level=logging.INFO, format="%(message)s")
-		
+		csvLogger = setupLogger("csvLogger", csvFile)
+		jsLogger = setupLogger("jsLogger", jsFile)
+
 		while True:
 			results = self.doSpeedTest()
-			logging.info(results["date"].strftime("%Y-%m-%d %H:%M:%S") + "," + str(results["uploadResult"]) + "," + str(results["downloadResult"]) + "," + str(results["ping"]))
+			csvLogger.info(results["date"].strftime("%Y-%m-%d %H:%M:%S") + "," + str(results["uploadResult"]) + "," + str(results["downloadResult"]) + "," + str(results["ping"]))
+			jsLogger.info('$("#date").text("' + results['date'].strftime('%Y-%m-%d %H:%M:%S') + '");')
+			jsLogger.info('$("#upload").val("' + str(results['uploadResult']) + '");')
+			jsLogger.info('$("#download").val("' + str(results['downloadResult']) + '");')
+			jsLogger.info('$("#ping").val("' + str(results['ping']) + '");')
 			# wait an hour and do it again 
 			time.sleep(3600)
 
@@ -40,6 +46,17 @@ class SpeedRegDaemon(SimpleDaemon):
 		uploadResult = float(uploadResult.replace("Upload: ", "").replace(" Mbits/s", ""))
 
 		return { "date": datetime.now(), "uploadResult": uploadResult, "downloadResult": downloadResult, "ping": pingResult }
+
+	def setupLogger(name, logFile, level=logging.INFO):
+		# setup multiple loggers
+		handler = logging.FileHandler(logFile)        
+		handler.setFormatter(logging.Formatter("%(message)s"))
+
+		logger = logging.getLogger(name)
+		logger.setLevel(level)
+		logger.addHandler(handler)
+
+		return logger
 
 if __name__ == "__main__":
 	workingDirectory, fileNameWithExt = os.path.split(os.path.realpath(__file__))
