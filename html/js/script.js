@@ -14,7 +14,7 @@ function setColor(name, inverse) {
 			break;
 		case (value < max/1.5):
 			// yellow
-			$(name).trigger("configure", {"fgColor":"#ff3", "inputColor":"#ff3"});
+			$(name).trigger("configure", {"fgColor":"#ffff33", "inputColor":"#ffff33"});
 			break;
 		default:
 			if (inverse) {
