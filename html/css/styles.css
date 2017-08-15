@@ -1,0 +1,15 @@
+body {
+	margin: 20px 10px;
+	font-size: 20px;
+	color: #355064;
+	background-color: #21323f;
+}
+p {margin: -30px 0 20px 0;}
+header {
+	font-size: .7em;
+	margin-bottom: 20px;
+	text-align: center;
+}
+.dial {
+	font-size: 40px !important;
+}

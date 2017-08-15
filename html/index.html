@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Speed</title>
+	<link rel="icon" href="favicon.ico">
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/styles.css">
+	<!--[if lt IE 9]>
+		<script src="//oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+		<script src="//oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+	<![endif]-->
+</head>
+<body>
+	<header>
+		<span id="date"></span>
+	</header>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-4 text-center">
+				<input id="ping" class="dial" data-max="50" data-readOnly="true">
+				<p>ping in ms</p>
+			</div>
+			<div class="col-sm-4 text-center">
+				<input id="download" class="dial" data-max="100" data-readOnly="true">
+				<p>download in Mbps</p>
+			</div>
+			<div class="col-sm-4 text-center">
+				<input id="upload" class="dial" data-max="100" data-readOnly="true">
+				<p>upload in Mbps</p>
+			</div>
+		</div>
+	</div>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
+	<script src="js/jquery.knob.min.js"></script>
+	<script src="js/values.js"></script>
+	<script src="js/script.js"></script>
+</body>
+</html>
