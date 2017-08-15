@@ -47,22 +47,23 @@ class SpeedRegDaemon(SimpleDaemon):
 
 		return { "date": datetime.now(), "uploadResult": uploadResult, "downloadResult": downloadResult, "ping": pingResult }
 
-	def setupLogger(name, logFile, level=logging.INFO):
-		# setup multiple loggers
-		handler = logging.FileHandler(logFile)        
-		handler.setFormatter(logging.Formatter("%(message)s"))
+def setupLogger(name, logFile, level=logging.INFO):
+	# setup multiple loggers
+	handler = logging.FileHandler(logFile)        
+	handler.setFormatter(logging.Formatter("%(message)s"))
 
-		logger = logging.getLogger(name)
-		logger.setLevel(level)
-		logger.addHandler(handler)
+	logger = logging.getLogger(name)
+	logger.setLevel(level)
+	logger.addHandler(handler)
 
 		return logger
 
 if __name__ == "__main__":
 	workingDirectory, fileNameWithExt = os.path.split(os.path.realpath(__file__))
 	fileName, fileExt = os.path.splitext(fileNameWithExt)
-	logFile = os.path.join(workingDirectory, logFile)
 	pidFile = os.path.join(workingDirectory, fileName + ".pid")
+	csvFile = os.path.join(workingDirectory, csvFile)
+	jsFile = os.path.join(workingDirectory, jsFile)
 	daemon = SpeedRegDaemon(pidFile)
 	if len(sys.argv) == 2:
 		if "start" == sys.argv[1]:
