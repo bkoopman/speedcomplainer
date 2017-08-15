@@ -13,15 +13,19 @@ jsFile = "values.js"
 class SpeedRegDaemon(SimpleDaemon):
 	def run(self):
 		csvLogger = setupLogger("csvLogger", csvFile)
-		jsLogger = setupLogger("jsLogger", jsFile)
 
 		while True:
 			results = self.doSpeedTest()
+			# log to csv file
 			csvLogger.info(results["date"].strftime("%Y-%m-%d %H:%M:%S") + "," + str(results["uploadResult"]) + "," + str(results["downloadResult"]) + "," + str(results["ping"]))
+			
+			# write to js file
+			jsLogger = setupLogger("jsLogger", jsFile, "w")
 			jsLogger.info('$("#date").text("' + results['date'].strftime('%Y-%m-%d %H:%M:%S') + '");')
 			jsLogger.info('$("#upload").val("' + str(results['uploadResult']) + '");')
 			jsLogger.info('$("#download").val("' + str(results['downloadResult']) + '");')
 			jsLogger.info('$("#ping").val("' + str(results['ping']) + '");')
+			
 			# wait an hour and do it again 
 			time.sleep(3600)
 
@@ -47,16 +51,16 @@ class SpeedRegDaemon(SimpleDaemon):
 
 		return { "date": datetime.now(), "uploadResult": uploadResult, "downloadResult": downloadResult, "ping": pingResult }
 
-def setupLogger(name, logFile, level=logging.INFO):
+def setupLogger(name, logFile, mode="a", level=logging.INFO):
 	# setup multiple loggers
-	handler = logging.FileHandler(logFile)        
+	handler = logging.FileHandler(logFile, mode)
 	handler.setFormatter(logging.Formatter("%(message)s"))
 
 	logger = logging.getLogger(name)
 	logger.setLevel(level)
 	logger.addHandler(handler)
 
-		return logger
+	return logger
 
 if __name__ == "__main__":
 	workingDirectory, fileNameWithExt = os.path.split(os.path.realpath(__file__))
