@@ -53,11 +53,15 @@ class SpeedRegDaemon(SimpleDaemon):
 
 def setupLogger(name, logFile, mode="a", level=logging.INFO):
 	# setup multiple loggers
+	logger = logging.getLogger(name)
+	logger.setLevel(level)
+
+	if len(logger.handlers) > 0:
+		logger.handlers = []
+
 	handler = logging.FileHandler(logFile, mode)
 	handler.setFormatter(logging.Formatter("%(message)s"))
 
-	logger = logging.getLogger(name)
-	logger.setLevel(level)
 	logger.addHandler(handler)
 
 	return logger
